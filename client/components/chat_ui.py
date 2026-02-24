@@ -1,7 +1,5 @@
 import streamlit as st
 from api import ask_backend
-from utils.helper import decode_base64_image
-
 
 def render_chat():
     st.title("🚢 Titanic Dataset Chat Agent")
@@ -35,5 +33,4 @@ def render_chat():
                 st.write(msg["content"])
 
                 if msg.get("image"):
-                    decode_base64_image(msg["image"])
                     st.image(msg["image"], width="stretch")

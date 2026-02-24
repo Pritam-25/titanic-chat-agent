@@ -59,10 +59,8 @@ def plot_data(code: str) -> str:
         plt.savefig(filename, dpi=150)
         plt.close()
 
-        # return base64
-        with open(filename, "rb") as fh:
-            b64 = base64.b64encode(fh.read()).decode("utf-8")
-        return f"data:image/png;base64,{b64}"
+        # return filename only (keep binary data out of LLM/tool messages)
+        return filename
     except Exception as e:
         return f"Plotting error: {str(e)}"
 
@@ -101,7 +99,6 @@ agent = create_agent(
 # -------------------------
 def run_agent(question: str) :
     response = agent.invoke({"messages": [{"role": "user", "content": question}]})
-    print("Agent raw response:", response)  # Debugging log
     result = response["structured_response"]
     # If the structured ChatResponse did not include an image, try to
     # recover any plot base64 returned by the `plot_data` tool in the
@@ -110,9 +107,21 @@ def run_agent(question: str) :
         for msg in response["messages"]:
             if isinstance(msg, ToolMessage) and msg.name == "plot_data":
                 tool_output = msg.content
-                if isinstance(tool_output, str) and tool_output.startswith("data:image/png;base64,"):
-                    result.image_base64 = tool_output
-                    break
+                
+                # New behavior: tool returns filename -> read file and convert to base64 here
+                if tool_output.endswith(".png"):
+                    try:
+                        with open(tool_output, "rb") as fh:
+                            b64 = base64.b64encode(fh.read()).decode("utf-8")
+                        result.image_base64 = f"data:image/png;base64,{b64}"
+
+                        # Delete file after successful encoding
+                        os.remove(tool_output)
+
+                        break
+                    except Exception:
+                        # If reading fails, continue searching other messages
+                        continue
     except Exception:
         # Don't fail the whole call if recovery logic has an issue.
         pass
