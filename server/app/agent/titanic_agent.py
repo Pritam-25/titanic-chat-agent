@@ -11,6 +11,7 @@ import seaborn as sns
 from app.services.data_loader import load_titanic_data
 from app.schemas.chat import ChatResponse
 from langchain.agents.structured_output import ToolStrategy
+from langchain_core.messages import ToolMessage
 
 matplotlib.use("Agg")  # Use non-GUI backend for server environments
 
@@ -100,21 +101,18 @@ agent = create_agent(
 # -------------------------
 def run_agent(question: str) :
     response = agent.invoke({"messages": [{"role": "user", "content": question}]})
+    print("Agent raw response:", response)  # Debugging log
     result = response["structured_response"]
     # If the structured ChatResponse did not include an image, try to
     # recover any plot base64 returned by the `plot_data` tool in the
     # agent messages and attach it to the ChatResponse before returning.
     try:
-        if getattr(result, "image_base64", None) in (None, ""):
-            for msg in response.get("messages", []):
-                # Tool messages for plots should have the tool name 'plot_data'
-                # and the base64 payload in `content`.
-                if msg.get("name") == "plot_data":
-                    content = msg.get("content")
-                    if content and isinstance(content, str) and content.startswith("data:image"):
-                        result.image_base64 = content
-                        print("Recovered image_base64 from tool message")
-                        break
+        for msg in response["messages"]:
+            if isinstance(msg, ToolMessage) and msg.name == "plot_data":
+                tool_output = msg.content
+                if isinstance(tool_output, str) and tool_output.startswith("data:image/png;base64,"):
+                    result.image_base64 = tool_output
+                    break
     except Exception:
         # Don't fail the whole call if recovery logic has an issue.
         pass
