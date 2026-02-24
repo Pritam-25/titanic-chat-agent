@@ -1,7 +1,5 @@
-import os
 from dotenv import load_dotenv
 load_dotenv(override=True)
-print("GOOGLE_API_KEY loaded:", os.getenv("GOOGLE_API_KEY"))
 
 from fastapi import FastAPI
 from .api.v1.router import api_router

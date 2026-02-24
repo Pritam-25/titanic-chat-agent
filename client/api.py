@@ -1,6 +1,8 @@
 import requests
+import os
 
-API_URL = "http://localhost:8000/api/v1/chat/"
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+API_URL = f"{BACKEND_URL}/api/v1/chat/"
 
 def ask_backend(question: str):
     try:

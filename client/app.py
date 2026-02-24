@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv(override=True)
 import streamlit as st
 from components.chat_ui import render_chat
 
