@@ -9,7 +9,7 @@ def ask_backend(question: str):
         response = requests.post(
             API_URL,
             json={"question": question},
-            timeout=600
+            timeout=60
         )
         response.raise_for_status()
         return response.json()
