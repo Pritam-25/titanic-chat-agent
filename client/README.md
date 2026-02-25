@@ -1,4 +1,4 @@
-(Optional) Streamlit client for the Titanic Chat Agent
+# Streamlit client for the Titanic Chat Agent
 
 Requirements
 
@@ -6,9 +6,9 @@ Requirements
 - Install dependencies from `pyproject.toml` or manually:
 
 ```bash
-python -m pip install -r requirements.txt
-# or with pip
-pip install streamlit requests pillow
+ cd client
+ uv run
+ .\.venv\Scripts\activate
 ```
 
 Run
